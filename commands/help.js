@@ -67,7 +67,7 @@ ${educationalCommandsList || 'No educational commands available.'}
 ${otherCommandsList || 'No other commands available.'}
 ╰─━━━━━━━━━╾─◊
 「help」 [name] 
-to see command details.
+to see command details.`
 
     sendMessage(senderId, { text: helpMessage }, pageAccessToken);
   }
