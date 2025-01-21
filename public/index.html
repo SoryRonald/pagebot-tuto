@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bot Facebook</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0d47a1, #1976d2);
+      color: #ffffff;
+      overflow-x: hidden;
+      transition: all 0.3s ease-in-out;
+    }
+
+    body.dark {
+      background: linear-gradient(135deg, #121212, #2c2c2c);
+      color: #e0e0e0;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px;
+      background-color: #0d47a1;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .header .logo {
+      width: 60px;
+    }
+
+    .header h1 {
+      color: #ffffff;
+      font-size: 26px;
+    }
+
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: #f0f0f0;
+      transform: scale(1.1);
+    }
+
+    .theme-toggle img {
+      width: 24px;
+      height: 24px;
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .main h2 {
+      font-size: 36px;
+      color: #ffffff;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .main p {
+      font-size: 18px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      color: #e0e0e0;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #1976d2;
+      color: white;
+      padding: 15px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+      text-decoration: none;
+    }
+
+    .btn:hover {
+      background-color: #1565c0;
+      transform: scale(1.1);
+    }
+
+    .btn img {
+      width: 24px;
+      height: 24px;
+      margin-right: 10px;
+    }
+
+    footer {
+      background-color: #0d47a1;
+      color: #b0b3b8;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      font-size: 14px;
+    }
+
+    .alert {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      z-index: 1000;
+    }
+
+    .alert img {
+      width: 50px;
+      margin-bottom: 10px;
+    }
+
+    .alert button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: white;
+      color: #0d47a1;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+    }
+
+    .alert button:hover {
+      background-color: #f0f0f0;
+    }
+
+    .alert.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Logo Facebook" class="logo">
+      <h1>Bot Facebook</h1>
+      
+    </div>
+    <div class="theme-toggle" id="themeToggle">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/8/8d/Sun_icon.svg" alt="Changer de thème">
+    </div>
+  </div>
+
+  <div class="main">
+    <h2>Découvrez Notre Bot Facebook</h2>
+    <p>
+      Profitez d'une assistance 24/7 grâce à notre bot Facebook, conçu pour vous offrir des réponses instantanées et améliorer votre expérience.
+    </p>
+    <a href="https://m.me/61550222011119" class="btn">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Logo Messenger">
+      Démarrer la Conversation
+    </a>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Bot Facebook bye Ronald Sory.</p>
+  </footer>
+
+  <div class="alert" id="welcomeAlert">
+    <img src="img/person.png" alt="Bienvenue">
+    <p>Bienvenue dans notre site pour notre Bot Facebook !</p>
+    <button onclick="closeAlert()">Ok</button>
+  </div>
+
+  <script>
+    const alertBox = document.getElementById("welcomeAlert");
+    const themeToggle = document.getElementById("themeToggle");
+    let isDarkMode = false;
+
+    window.onload = function () {
+      setTimeout(() => {
+        alertBox.classList.add("show");
+      }, 1000);
+    };
+
+    function closeAlert() {
+      alertBox.classList.remove("show");
+    }
+
+    themeToggle.addEventListener("click", () => {
+      isDarkMode = !isDarkMode;
+      document.body.classList.toggle("dark", isDarkMode);
+      themeToggle.querySelector("img").src = isDarkMode
+        ? "img/sun.png"
+        : "img/moon.png";
+    });
+  </script>
+</body>
+</html>
