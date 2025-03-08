@@ -10,7 +10,7 @@ module.exports = {
     // Convert senderID to string if necessary
     const userId = String(senderID);
     await sendMessage(senderID, {
-      text: `🙂➲ ${userId}`
+      text: `🙂 voici le uid que Damiba propose➲ ${userId}`
     }, pageAccessToken);
   }
 };
