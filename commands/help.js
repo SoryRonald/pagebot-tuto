@@ -59,15 +59,18 @@ module.exports = {
       .map(command => `│ ✧ ${command.name}`).join('\n');
 
     const helpMessage = `
-╭─❍「 𝗡𝗢 𝗣𝗥𝗘𝗙𝗜𝗫 」
+♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎
 ${educationalCommandsList || 'No educational commands available.'}
-╰─━━━━━━━━━╾─◊
+♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎♥︎
 
-╭「 𝗢𝗧𝗛𝗘𝗥 𝗖𝗠𝗗」
+╭「 𝒂𝒖𝒕𝒓𝒆𝒔 𝒄𝒐𝒎𝒎𝒂𝒏𝒅𝒆𝒔」
 ${otherCommandsList || 'No other commands available.'}
-╰─━━━━━━━━━╾─◊
+.................
+$𝒄𝒓𝒆𝒂𝒕𝒆𝒖𝒓: 𝒂𝒛𝒊𝒛 𝒅𝒂𝒎𝒊𝒃𝒂
+$lien1: https://www.facebook.com/profile.php?id=61565963713938
+$lien2: https://www.facebook.com/profile.php?id=61568411826056
 「help」 [name] 
-to see command details.`
+pour avoir plus de détails .`
 
     sendMessage(senderId, { text: helpMessage }, pageAccessToken);
   }
