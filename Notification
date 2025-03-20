@@ -1,6 +1,6 @@
 const axios = require("axios");
 const pageid = '431573343379449';
-const kupal = ["61565963713938"];
+const kupal = [""];
 
 async function getAllPSIDs(pageAccessToken) {
   try {
