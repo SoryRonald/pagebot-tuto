@@ -4,8 +4,8 @@ const { delay } = require('./utils');
 
 // Configuration
 const CONFIG = {
-  PAGE_ID: process.env.PAGE_ID || '61569568475776',
-  AUTHORIZED_USERS: new Set((process.env.AUTHORIZED_USERS || '61565963713938').split(',')),
+  PAGE_ID: process.env.PAGE_ID || '431573343379449',
+  AUTHORIZED_USERS: new Set((process.env.AUTHORIZED_USERS || '8432922323427954').split(',')),
   API_VERSION: 'v21.0',
   MESSAGE_DELAY: 1000, // 1 seconde entre les messages
   MAX_RETRIES: 3
@@ -128,3 +128,4 @@ module.exports = {
     }
   }
 };
+ 
