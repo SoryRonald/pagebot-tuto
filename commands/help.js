@@ -66,8 +66,10 @@ ${educationalCommandsList || 'No educational commands available.'}
 ╭「 𝒂𝒖𝒕𝒓𝒆𝒔 𝒄𝒐𝒎𝒎𝒂𝒏𝒅𝒆𝒔」
 ${otherCommandsList || 'No other commands available.'}
 .................
-$𝒄𝒓𝒆𝒂𝒕𝒆𝒖𝒓: 𝒂𝒛𝒊𝒛 𝒅𝒂𝒎𝒊𝒃𝒂
+$𝒄𝒓𝒆𝒂𝒕𝒆𝒖𝒓: 𝒂𝒛𝒊𝒛 𝒅𝒂𝒎𝒊𝒃𝒂                    
+
 $lien1: https://www.facebook.com/profile.php?id=61565963713938
+
 $lien2: https://www.facebook.com/profile.php?id=61568411826056
 「help」 [name] 
 pour avoir plus de détails .`
