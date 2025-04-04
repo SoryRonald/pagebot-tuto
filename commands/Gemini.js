@@ -1,20 +1,42 @@
 const axios = require('axios');
-const { sendMessage } = require('../handles/sendMessage');
+const { sendmessage } = require('../handles/sendmessage');
 
 module.exports = {
-  name: 'gemini',
-  description: 'Interact with Google Gemini',
-  usage: 'gemini [your message]',
-  author: 'coffee',
-  async execute(senderId, args, pageAccessToken) {
-    const prompt = args.join(' ');
-    if (!prompt) return sendMessage(senderId, { text: "Usage: gemini <your message>" }, pageAccessToken);
+    name: 'gemini',
+    description: 'interagit avec google gemini',
+    usage: 'gemini [votre message]',
+    author: 'aziz damiba', // api by sandipbaruwal
 
-    try {
-      const { data } = await axios.get(`https://sandipbaruwal.onrender.com/gemini?prompt==${encodeURIComponent(prompt)}`);
-      sendMessage(senderId, { text: data.gemini }, pageAccessToken);
-    } catch {
-      sendMessage(senderId, { text: 'Error generating response. Try again later.' }, pageAccessToken);
+    async execute(senderid, args, pageaccesstoken, event) {
+        try {
+            let prompt = args.join(' ');
+
+            if (event.message && event.message.attachments && event.message.attachments[0].type === 'image') {
+                const photourl = encodeURIComponent(event.message.attachments[0].payload.url);
+                const url = `https://sandipbaruwal.onrender.com/gemini2?prompt=${encodeURIComponent(prompt)}&url=${photourl}`;
+
+                const response = await axios.get(url);
+                return sendmessage(senderid, { text: response.data.answer }, pageaccesstoken);
+            }
+
+            if (!prompt) {
+                return sendmessage(senderid, { text: "usage: gemini " }, pageaccesstoken);
+            }
+
+            const encodedprompt = encodeURIComponent(prompt);
+            const apiurl = `https://sandipbaruwal.onrender.com/gemini?prompt=${encodedprompt}`;
+
+            // indiquer que le bot traite la demande
+            sendmessage(senderid, { text: "⏳ génération en cours..." }, pageaccesstoken);
+
+            const res = await axios.get(apiurl);
+            const result = res.data.answer;
+
+            sendmessage(senderid, { text: result }, pageaccesstoken);
+
+        } catch (error) {
+            console.error("erreur lors de la requête à gemini:", error.message);
+            sendmessage(senderid, { text: "❌ une erreur s'est produite, réessayez plus tard." }, pageaccesstoken);
+        }
     }
-  }
 };
