@@ -1,72 +1,140 @@
+const { sendMessage } = require('../handles/message');
 const axios = require("axios");
-const pageid ='61569568475776';
-const kupal = ["61565963713938"];
+const config = require("../configure.json");
 
-async function getAllPSIDs(pageAccessToken) {
+async function getPageData(pageAccessToken) {
+  try {
+    const response = await axios.get(
+      `https://graph.facebook.com/me?fields=id,name,picture.width(720).height(720).as(picture_large)&access_token=${pageAccessToken}`
+    );
+    return {
+      profileUrl: response.data.picture_large?.data?.url,
+      name: response.data.name,
+      pageid: response.data.id
+    };
+  } catch (error) {
+    throw new Error('Failed to fetch page data');
+  }
+}
+
+async function getAllPSIDs(pageAccessToken, pageid) {
   try {
     let psids = [];
-    let previous = `https://graph.facebook.com/v21.0/${pageid}/conversations?fields=participants&access_token=${pageAccessToken}`;
-    
-    while (previous) {
-      const response = await axios.get(previous);
-      const conversations = response.data.data;
+    let url = `https://graph.facebook.com/v22.0/${pageid}/conversations?fields=participants&access_token=${pageAccessToken}`;
+    const allAdmins = [
+      ...new Set([
+        ...config.adminId,
+        ...(config.sessions || []).map(session => session.adminid).filter(Boolean)
+      ])
+    ];
 
-      conversations.forEach(convo => {
-        convo.participants.data.forEach(participant => {
-          if (participant.id !== pageid && !kupal.includes(participant.id)) {
+    while (url) {
+      const response = await axios.get(url);
+      const conversations = response.data.data || [];
+
+      for (const convo of conversations) {
+        const participants = convo.participants?.data || [];
+        for (const participant of participants) {
+          if (participant.id && participant.id !== pageid && !allAdmins.includes(participant.id)) {
             psids.push(participant.id);
           }
-        });
-      });
+        }
+      }
 
-      previous = response.data.paging.next || null;
+      url = response.data.paging?.next || null;
     }
 
-    return psids;
+    return [...new Set(psids)]; // Return unique PSIDs
   } catch (error) {
+    console.error('Error fetching PSIDs:', error);
     return [];
   }
 }
 
-async function sendNotificationToAllUsers(message, pageAccessToken) {
-  const users = await getAllPSIDs(pageAccessToken);
+async function sendNotificationToAllUsers(message, pageAccessToken, pageid) {
+  const users = await getAllPSIDs(pageAccessToken, pageid);
+  const batchSize = 50; // Process in batches to avoid rate limits
+  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-  for (const psid of users) {
-    try {
-      await axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${pageAccessToken}`, {
-        recipient: { id: psid },
-        message: { text: message },
-      });
-    } catch (error) {
-    }
+  for (let i = 0; i < users.length; i += batchSize) {
+    const batch = users.slice(i, i + batchSize);
+    const batchPromises = batch.map(psid =>
+      axios.post(
+        `https://graph.facebook.com/v22.0/me/messages`,
+        {
+          recipient: { id: psid },
+          message: { text: message },
+          messaging_type: "MESSAGE_TAG",
+          tag: "NON_PROMOTIONAL_SUBSCRIPTION"
+        },
+        {
+          params: { access_token: pageAccessToken },
+          timeout: 10000
+        }
+      ).catch(e => console.error(`Failed to send to ${psid}:`, e.message))
+    );
+
+    await Promise.all(batchPromises);
+    if (i + batchSize < users.length) await delay(1000); // Add delay between batches
   }
 }
 
 module.exports = {
-  name: 'sendnoti',
-  description: 'send notification to all user',
-  author: 'Cliff',
+  name: "sendnoti",
+  description: "Send notification to all users",
+  author: "Cliff",
   usage: "sendnoti <message>",
-  async execute(senderId, args, pageAccessToken, sendMessage) {
-
-    if (!kupal.some(kupal_ka => kupal_ka === senderId)) {
-      sendMessage(senderId, { text: "This command is only for pagebot owner." }, pageAccessToken);
-      return;
-    }
-
-    const message = args.join(' ');
-    if (!message) {
-      sendMessage(senderId, { text: 'Please provide a text message' }, pageAccessToken);
-      return;
-    }
-
+  async execute(senderId, args, pageAccessToken) {
     try {
-      sendMessage(senderId, { text: 'Sending notifications...' }, pageAccessToken);
-      await sendNotificationToAllUsers(message, pageAccessToken);
-      sendMessage(senderId, { text: 'Notifications sent successfully.' }, pageAccessToken);
+      const allAdmins = [
+        ...new Set([
+          ...config.adminId,
+          ...(config.sessions || []).map(session => session.adminid).filter(Boolean)
+        ])
+      ];
+
+      if (!allAdmins.includes(senderId)) {
+        await sendMessage(
+          senderId,
+          { text: "❌ This command is only for pagebot admin." },
+          pageAccessToken
+        );
+        return;
+      }
+
+      const message = args.join(" ").trim();
+      if (!message) {
+        await sendMessage(
+          senderId,
+          { text: "❗ Please provide a text message" },
+          pageAccessToken
+        );
+        return;
+      }
+
+      await sendMessage(
+        senderId,
+        { text: "⏳ Sending notifications to all users..." },
+        pageAccessToken
+      );
+
+      const { pageid } = await getPageData(pageAccessToken);
+      const notificationMessage = `📢 𝗡𝗢𝗧𝗜𝗙𝗜𝗖𝗔𝗧𝗜𝗢𝗡 \n━━━━━━━━━━━━━━\n╭💬 𝗠𝗘𝗦𝗦𝗔𝗚𝗘: \n╰┈➤ ${message}\n━━━━━━━━━━━━━━`;
+
+      await sendNotificationToAllUsers(notificationMessage, pageAccessToken, pageid);
+      
+      await sendMessage(
+        senderId,
+        { text: "✅ Notifications sent successfully!" },
+        pageAccessToken
+      );
     } catch (error) {
-      sendMessage(senderId, { text: 'An error occurred while sending notifications.' }, pageAccessToken);
-      sendMessage(senderId, { text: error.message }, pageAccessToken);
+      console.error('Error in sendnoti command:', error);
+      await sendMessage(
+        senderId,
+        { text: `❌ Error: ${error.message}` },
+        pageAccessToken
+      );
     }
   }
 };
