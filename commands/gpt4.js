@@ -12,7 +12,7 @@ module.exports = {
     if (!prompt) return sendMessage(senderId, { text: "Usage: gpt4 <question>" }, pageAccessToken);
 
     try {
-      const { data: { response } } = await axios.get(`https://kaiz-apis.gleeze.com/api/gpt-4o?ask=${encodeURIComponent(prompt)}&uid=${senderId}&webSearch=off`);
+      const { data: { response } } = await axios.get(`https://ronald-api-v1.vercel.app/`);
       const parts = [];
 
       for (let i = 0; i < response.length; i += 1800) {
