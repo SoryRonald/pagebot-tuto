@@ -21,7 +21,7 @@ const getImageUrl = async (event, token) => {
 const conversationHistory = {};
 
 module.exports = {
-  name: 'ai',
+  name: 'default',
   description: 'Interact with Mocha AI using text queries and image analysis',
   usage: 'ask a question, or send a reply question to an image.',
   author: 'Coffee',
