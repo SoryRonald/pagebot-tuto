@@ -14,7 +14,7 @@ module.exports = {
 }
 
     try {
-      const apiUrl = `https://fuku-api-v4-1.onrender.com/api/gpt4?user_id=${senderId}&message=${encodeURIComponent(message)}`;
+      const apiUrl = `https://fuku-api-v4.onrender.com/api/gpt4?user_id=${senderId}&message=${encodeURIComponent(message)}`;
       const response = await axios.get(apiUrl);
 
       const reply = response.data?.response?.trim() || response.data?.content?.trim();
