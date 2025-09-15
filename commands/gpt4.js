@@ -14,7 +14,7 @@ module.exports = {
 }
 
     try {
-      const apiUrl = `https://fuku-api-v4.onrender.com/ask?prompt=${encodeURIComponent(prompt)}`;
+      const apiUrl = `https://fuku-api-v4-auly.onrender.com/ask?prompt=${encodeURIComponent(prompt)}`;
       const response = await axios.get(apiUrl);
 
       const reply = response.data?.reply?.trim();
