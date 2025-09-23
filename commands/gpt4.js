@@ -14,7 +14,7 @@ module.exports = {
 }
 
     try {
-      const apiUrl = `https://fuku-api-v4-auly.onrender.com/ask?prompt=${encodeURIComponent(prompt)}`;
+      const apiUrl = `https://fuku-api-v4-7mlw.vercel.app/ask?prompt=${encodeURIComponent(prompt)}`;
       const response = await axios.get(apiUrl);
 
       const reply = response.data?.reply?.trim();
@@ -23,12 +23,12 @@ module.exports = {
           await sendMessage(senderId, { text: reply.substring(i, i + 1800)}, pageAccessToken);
 }
 } else {
-        sendMessage(senderId, { text: "❌ Danakro AI n'a pas pu répondre. Réessaie."}, pageAccessToken);
+        sendMessage(senderId, { text: "❌ Danakro AI ❌ n'a pas pu répondre. Réessaie. Si le problème persiste contactez l'administrateur en écrivant 👉 help 👈 pour avoir le lien de son profil"}, pageAccessToken);
 }
 
 } catch (error) {
       console.error("❌ Erreur API Danakro AI:", error.message);
-      sendMessage(senderId, { text: "🚨 Une erreur s'est produite. Réessaie plus tard."}, pageAccessToken);
+      sendMessage(senderId, { text: "🕳️ DANAKRO AI 🕳️ a eu un petit problème . Réessaie plus tard. si le problème persiste contactez l'administrateur en écrivant 👉help👈 pour voir le lien de son profil}, pageAccessToken);
 }
 }
 };
