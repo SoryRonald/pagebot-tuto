@@ -23,13 +23,16 @@ module.exports = {
           await sendMessage(senderId, { text: reply.substring(i, i + 1800)}, pageAccessToken);
 }
 } else {
-        sendMessage(senderId, { text: "❌ Danakro AI ❌ n'a pas pu répondre. Réessaie. Si le problème persiste contactez l'administrateur en écrivant 👉 help 👈 pour avoir le lien de son profil"}, pageAccessToken);
+        await sendMessage(senderId, {
+          text: "❌ Danakro AI ❌ n'a pas pu répondre. Réessaie. Si le problème persiste contactez l'administrateur en écrivant 👉 help 👈 pour avoir le lien de son profil"
+}, pageAccessToken);
 }
 
 } catch (error) {
       console.error("❌ Erreur API Danakro AI:", error.message);
-      sendMessage(senderId, { text: "🕳️ DANAKRO AI 🕳️ a eu un petit problème . Réessaie plus tard. si le problème persiste contactez l'administrateur en écrivant 👉help👈 pour voir le lien de son profil}, pageAccessToken);
+      await sendMessage(senderId, {
+        text: "🕳️ DANAKRO AI 🕳️ a eu un petit problème. Réessaie plus tard. Si le problème persiste, contactez l'administrateur en écrivant 👉help👈 pour voir le lien de son profil"
+}, pageAccessToken);
 }
 }
 };
-  
