@@ -31,7 +31,7 @@ module.exports = {
 } catch (error) {
       console.error("❌ Erreur API Danakro AI:", error.message);
       await sendMessage(senderId, {
-        text: "🕳️ DANAKRO AI 🕳️ a eu un petit problème. Réessaie plus tard. Si le problème persiste, contactez l'administrateur en écrivant 👉help👈 pour voir le lien de son profil"
+        text: "🕳️ DANAKRO AI 🕳️ a eu un petit problème. Réessaie plus tard. Si le problème persiste, contactez l'administrateur en écrivant 👉 help 👈 pour voir le lien de son profil"
 }, pageAccessToken);
 }
 }
