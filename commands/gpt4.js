@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { sendMessage} = require('../handles/sendMessage');
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'danakro',
@@ -8,58 +8,63 @@ module.exports = {
   author: 'AZIZ DAMIBA',
 
   async execute(senderId, args, pageAccessToken) {
+    // Si args est vide, on envoie le message d'usage
+    if (args.length === 0) {
+      return await sendMessage(senderId, {
+        text: "👋 Bonjour ! Je suis Danakro AI. Parlez-moi directement et je vous répondrai !\n\nExemple : \"Quelle est la capitale de la France ?\""
+      }, pageAccessToken);
+    }
+
     const message = args.join(' ').trim();
 
-    if (!message) {
-      return sendMessage(senderId, {
-        text: "❗ Utilisation: danakro [votre message]"
-}, pageAccessToken);
-}
-
     try {
+      // Indicateur de frappe
+      await sendMessage(senderId, { sender_action: 'typing_on' }, pageAccessToken);
+
       const response = await axios.post('https://fuku-api-v4-2.onrender.com/ask?prompt=', {
         userId: senderId,
         prompt: message
-}, {
-        headers: { 'Content-Type': 'application/json'},
+      }, {
+        headers: { 'Content-Type': 'application/json' },
         timeout: 30000
-});
+      });
 
       const reply = response.data?.reply?.trim();
 
       if (reply) {
+        // Envoi en chunks de 1800 caractères
         for (let i = 0; i < reply.length; i += 1800) {
           await sendMessage(senderId, {
             text: reply.substring(i, i + 1800)
-}, pageAccessToken);
-}
-} else {
+          }, pageAccessToken);
+        }
+      } else {
         await sendMessage(senderId, {
-          text: "❌ Danakro AI n'a pas pu répondre. Réessaie."
-}, pageAccessToken);
-}
+          text: "❌ Danakro AI n'a pas pu générer de réponse. Pouvez-vous reformuler votre message ?"
+        }, pageAccessToken);
+      }
 
-} catch (error) {
-      console.error("❌ Erreur API Danakro (POST):", error.message);
+    } catch (error) {
+      console.error("❌ Erreur API Danakro:", error.message);
 
-      let errorMessage = "🚨 Une erreur s'est produite. Réessaie plus tard.";
+      let errorMessage = "🚨 Une erreur s'est produite. dans quelques minutes.";
 
       if (error.code === 'ECONNABORTED') {
         errorMessage = "⏰ La requête a expiré. Réessaie.";
-} else if (error.response) {
+      } else if (error.response) {
         const status = error.response.status;
         if (status === 400) {
           errorMessage = "⚠️ Requête invalide. Vérifie le format.";
-} else if (status === 429) {
+        } else if (status === 429) {
           errorMessage = "🐦 Trop de requêtes. Patiente un peu.";
-} else if (status>= 500) {
+        } else if (status >= 500) {
           errorMessage = "🔧 Problème serveur. Réessaie plus tard.";
-}
-} else if (error.request) {
+        }
+      } else if (error.request) {
         errorMessage = "🌐 Serveur injoignable. Vérifie ta connexion.";
-}
+      }
 
-      await sendMessage(senderId, { text: errorMessage}, pageAccessToken);
-}
-}
+      await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
+    }
+  }
 };
