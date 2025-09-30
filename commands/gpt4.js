@@ -17,7 +17,7 @@ module.exports = {
 }
 
     try {
-      const response = await axios.post('https://fuku-api-v4-2.onrender.com/ask', {
+      const response = await axios.post('https://fuku-api-v4-2.onrender.com/ask?prompt=', {
         userId: senderId,
         prompt: message
 }, {
