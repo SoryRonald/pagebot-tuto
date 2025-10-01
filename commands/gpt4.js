@@ -1,59 +1,71 @@
 const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
 
-// Stockage simple en mémoire (à remplacer par une base de données pour la persistance)
-const userMemories = new Map();
-
 module.exports = {
-  name: 'gpt4',
-  description: 'Interagit avec GPT-4 avec mémoire de conversation',
-  usage: 'gpt4 [votre message]',
+  name: 'danakro',
+  description: 'Interagit avec Danakro AI (mémoire activée)',
+  usage: 'danakro [votre message]',
   author: 'AZIZ DAMIBA',
-  
+
   async execute(senderId, args, pageAccessToken) {
-    const message = args.join(' ');
-    if (!message) {
-      return sendMessage(senderId, { text: "❗ Utilisation : gpt4 [votre message]" }, pageAccessToken);
+    // Si args est vide, on envoie le message d'usage
+    if (args.length === 0) {
+      return await sendMessage(senderId, {
+        text: "👋 Bonjour ! Je suis Danakro AI. Parlez-moi directement et je vous répondrai !\n\nExemple : \"Quelle est la capitale du Burkina Faso ?\""
+      }, pageAccessToken);
     }
 
-    try {
-      // Récupérer l'historique de conversation ou initialiser
-      if (!userMemories.has(senderId)) {
-        userMemories.set(senderId, []);
-      }
-      const userMemory = userMemories.get(senderId);
-      
-      // Ajouter le nouveau message à l'historique
-      userMemory.push(`Utilisateur: ${message}`);
-      
-      // Limiter l'historique aux 10 derniers messages pour éviter les dépassements
-      if (userMemory.length > 10) {
-        userMemory.splice(0, userMemory.length - 10);
-      }
-      
-      // Préparer le prompt avec l'historique
-      const fullPrompt = userMemory.join('\n') + '\nAssistant:';
-      
-      const apiUrl = `https://fuku-api-v4-2.onrender.com/ask?prompt=${encodeURIComponent(fullPrompt)}`;
-      const response = await axios.get(apiUrl);
+    const message = args.join(' ').trim();
 
-      const reply = response.data?.response?.trim() || response.data?.content?.trim() || response.data?.trim();
+    try {
+      // Indicateur de frappe
+      await sendMessage(senderId, { sender_action: 'typing_on' }, pageAccessToken);
+
+      const response = await axios.post('https://fuku-api-v4-2.onrender.com/ask?prompt=${encodedPrompt}', {
+        userId: senderId,
+        prompt: message
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000
+      });
+
+      const reply = response.data?.reply?.trim();
 
       if (reply) {
-        // Ajouter la réponse à l'historique
-        userMemory.push(`Assistant: ${reply}`);
-        
-        // Envoyer la réponse par morceaux
+        // Envoi en chunks de 1800 caractères
         for (let i = 0; i < reply.length; i += 1800) {
-          await sendMessage(senderId, { text: reply.substring(i, i + 1800) }, pageAccessToken);
+          await sendMessage(senderId, {
+            text: reply.substring(i, i + 1800)
+          }, pageAccessToken);
         }
       } else {
-        sendMessage(senderId, { text: "Une surcharge de l'API vient de se produire. réessayer une minute plus tard " }, pageAccessToken);
+        await sendMessage(senderId, {
+          text: "❌ Danakro AI n'a pas pu générer de réponse. Pouvez-vous reformuler votre message ?"
+        }, pageAccessToken);
       }
 
     } catch (error) {
-      console.error("❌ Erreur API GPT-4 :", error.message);
-      sendMessage(senderId, { text: "🚨 Une surcharge de requêtes s'est produite. Réessaie une minute plus tard" }, pageAccessToken);
+      console.error("❌ Erreur API Danakro:", error.message);
+
+      let errorMessage = "🚨 Une erreur s'est produite. dans quelques minutes.";
+
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = "⏰ La requête a expiré. Réessaie.";
+      } else if (error.response) {
+        const status = error.response.status;
+        if (status === 400) {
+          errorMessage = "⚠️ Requête invalide. Vérifie le format.";
+        } else if (status === 429) {
+          errorMessage = "🐦 Trop de requêtes. Patiente un peu.";
+        } else if (status >= 500) {
+          errorMessage = "🔧 Problème serveur. Réessaie plus tard.";
+        }
+      } else if (error.request) {
+        errorMessage = "🌐 Serveur injoignable. Vérifie ta connexion.";
+      }
+
+      await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
     }
   }
 };
+
