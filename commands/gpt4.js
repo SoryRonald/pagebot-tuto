@@ -1,66 +1,71 @@
-// handles/messageHandler.js
-const { sendMessage } = require('./sendMessage');
-const danakroCommand = require('../commands/danakro');
+const axios = require('axios');
+const { sendMessage } = require('../handles/sendMessage');
 
-async function handleMessage(senderId, message, pageAccessToken) {
-  const text = message.text?.trim();
-  
-  if (!text) {
-    return await sendMessage(senderId, {
-      text: "👋 Bonjour ! Envoyez-moi un message et je vous répondrai."
-    }, pageAccessToken);
-  }
+module.exports = {
+  name: 'danakro',
+  description: 'Interagit avec Danakro AI (mémoire activée)',
+  usage: 'danakro [votre message]',
+  author: 'AZIZ DAMIBA',
 
-  // Traiter TOUS les messages avec Danakro AI (sans préfixe requis)
-  try {
-    // Indicateur de frappe
-    await sendMessage(senderId, { sender_action: 'typing_on' }, pageAccessToken);
-
-    const response = await axios.post('https://fuku-api-v4-2.onrender.com/ask?prompt=', {
-      userId: senderId,
-      prompt: text
-    }, {
-      headers: { 'Content-Type': 'application/json' },
-      timeout: 30000
-    });
-
-    const reply = response.data?.reply?.trim();
-
-    if (reply) {
-      // Envoi en chunks de 1800 caractères
-      for (let i = 0; i < reply.length; i += 1800) {
-        await sendMessage(senderId, {
-          text: reply.substring(i, i + 1800)
-        }, pageAccessToken);
-      }
-    } else {
-      await sendMessage(senderId, {
-        text: "❌ Je n'ai pas pu générer de réponse. Pouvez-vous reformuler votre message ?"
+  async execute(senderId, args, pageAccessToken) {
+    // Si args est vide, on envoie le message d'usage
+    if (args.length === 0) {
+      return await sendMessage(senderId, {
+        text: "👋 Bonjour ! Je suis Danakro AI. Parlez-moi directement et je vous répondrai !\n\nExemple : \"Quelle est la capitale de la France ?\""
       }, pageAccessToken);
     }
 
-  } catch (error) {
-    console.error("❌ Erreur API Danakro:", error.message);
-    
-    let errorMessage = "🚨 Une erreur s'est produite. Réessayez dans quelques minutes.";
-    
-    if (error.code === 'ECONNABORTED') {
-      errorMessage = "⏰ La requête a expiré. Réessayez.";
-    } else if (error.response) {
-      const status = error.response.status;
-      if (status === 400) {
-        errorMessage = "⚠️ Requête invalide. Vérifiez le format.";
-      } else if (status === 429) {
-        errorMessage = "🐦 Trop de requêtes. Patientez un peu.";
-      } else if (status >= 500) {
-        errorMessage = "🔧 Problème serveur. Réessayez plus tard.";
+    const message = args.join(' ').trim();
+
+    try {
+      // Indicateur de frappe
+      await sendMessage(senderId, { sender_action: 'typing_on' }, pageAccessToken);
+
+      const response = await axios.post('https://fuku-api-v4-2.onrender.com/ask?prompt=', {
+        userId: senderId,
+        prompt: message
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 30000
+      });
+
+      const reply = response.data?.reply?.trim();
+
+      if (reply) {
+        // Envoi en chunks de 1800 caractères
+        for (let i = 0; i < reply.length; i += 1800) {
+          await sendMessage(senderId, {
+            text: reply.substring(i, i + 1800)
+          }, pageAccessToken);
+        }
+      } else {
+        await sendMessage(senderId, {
+          text: "❌ Danakro AI n'a pas pu générer de réponse. Pouvez-vous reformuler votre message ?"
+        }, pageAccessToken);
       }
-    } else if (error.request) {
-      errorMessage = "🌐 Serveur injoignable. Vérifiez votre connexion.";
+
+    } catch (error) {
+      console.error("❌ Erreur API Danakro:", error.message);
+
+      let errorMessage = "🚨 Une erreur s'est produite. dans quelques minutes.";
+
+      if (error.code === 'ECONNABORTED') {
+        errorMessage = "⏰ La requête a expiré. Réessaie.";
+      } else if (error.response) {
+        const status = error.response.status;
+        if (status === 400) {
+          errorMessage = "⚠️ Requête invalide. Vérifie le format.";
+        } else if (status === 429) {
+          errorMessage = "🐦 Trop de requêtes. Patiente un peu.";
+        } else if (status >= 500) {
+          errorMessage = "🔧 Problème serveur. Réessaie plus tard.";
+        }
+      } else if (error.request) {
+        errorMessage = "🌐 Serveur injoignable. Vérifie ta connexion.";
+      }
+
+      await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
     }
-
-    await sendMessage(senderId, { text: errorMessage }, pageAccessToken);
   }
-}
+};
 
-module.exports = { handleMessage };
