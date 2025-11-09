@@ -17,24 +17,33 @@ module.exports = {
       const apiUrl = `https://fuku-api-v4-2-p6ik.onrender.com/ask?prompt=${encodeURIComponent(message)}`;
       const response = await axios.get(apiUrl);
 
-      // Extraction de la réponse
-      const reply = response.data?.response?.trim() || 
-                   response.data?.content?.trim() || 
-                   response.data?.trim() || 
-                   response.data;
+      // Vérifier la structure de la réponse
+      let reply;
+      if (typeof response.data === 'string') {
+        reply = response.data;
+      } else if (response.data.response) {
+        reply = response.data.response;
+      } else if (response.data.answer) {
+        reply = response.data.answer;
+      } else {
+        reply = JSON.stringify(response.data);
+      }
+
+      reply = reply.trim();
 
       if (reply) {
-        // Découpage en messages de 1800 caractères
+        // Découper le message en parties de 1800 caractères maximum
         for (let i = 0; i < reply.length; i += 1800) {
           await sendMessage(senderId, { text: reply.substring(i, i + 1800) }, pageAccessToken);
         }
       } else {
-        sendMessage(senderId, { text: "❌ GPT-4 n'a pas pu répondre. Réessaie." }, pageAccessToken);
+        await sendMessage(senderId, { text: "❌ GPT-4 n'a pas pu répondre. Réessaie." }, pageAccessToken);
       }
 
     } catch (error) {
       console.error("❌ Erreur API GPT-4 :", error.message);
-      sendMessage(senderId, { text: "🚨 Une erreur s'est produite. Réessaie plus tard." }, pageAccessToken);
+      console.error("Détails de l'erreur :", error.response?.data || error);
+      await sendMessage(senderId, { text: "🚨 Une erreur s'est produite. Réessaie plus tard." }, pageAccessToken);
     }
   }
 };
