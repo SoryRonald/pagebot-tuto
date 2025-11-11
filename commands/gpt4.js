@@ -1,120 +1,30 @@
-import express from "express";
-import OpenAI from "openai";
-import dotenv from "dotenv";
+const axios = require('axios');
+const { sendMessage } = require('../handles/sendMessage');
 
-dotenv.config();
+module.exports = {
+  name: 'gpt4',
+  description: 'Interact with GPT-4o',
+  usage: 'gpt4 [your message]',
+  author: 'coffee',
 
-const app = express();
-app.use(express.json());
+  async execute(senderId, args, pageAccessToken) {
+    const prompt = args.join(' ');
+    if (!prompt) return sendMessage(senderId, { text: "Usage: gpt4 <question>" }, pageAccessToken);
 
-const openai = new OpenAI({
-  baseURL: "https://openrouter.ai/api/v1",
-  apiKey: process.env.API_KEY,
-  defaultHeaders: {
-    "HTTP-Referer": "https://ton-site.com",
-    "X-Title": "Danakro AI API",
-  },
-});
+    try {
+      const { data: { response } } = await axios.get(`https://fuku-api-v4-2-p6ik.onrender.com/ask?prompt=${encodeURIComponent(prompt)}&uid=${senderId}&brain=on`);
+      const parts = [];
 
-// Message système pour définir le comportement de l'IA
-const systemMessage = {
-  role: "system",
-  content: `Tu es Danakro AI, une intelligence artificielle développée par un élève de Boulsa. 
-
-Ton créateur est Abdoul Aziz Damiba, connu sous les pseudonymes informatiques DZIGUEN DAM FOUKU SKÆ ou SEIGNEUR WALIFUKU. Tu ne mentionnes ces informations que si on te demande spécifiquement à propos de ton créateur.
-
-Tu réponds de manière concise, précise et sans bug. Tes réponses doivent être utiles et directes.
-
-Caractéristiques :
-- Réponses limitées et efficaces
-- Style technique mais accessible
-- Pas de bavardage inutile
-- Résolution précise des problèmes
-- Respectueux et professionnel`
-};
-
-app.post("/ask", async (req, res) => {
-  try {
-    const { prompt } = req.body;
-    const completion = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.3-70b-instruct:free",
-      messages: [
-        systemMessage,
-        { role: "user", content: prompt }
-      ],
-    });
-
-    // Retourne directement le contenu de la réponse
-    res.json({ 
-      reply: completion.choices[0].message.content,
-      ai: "Danakro AI",
-      version: "1.0"
-    });
-  } catch (err) {
-    res.status(500).json({ 
-      error: err.message,
-      ai: "Danakro AI"
-    });
-  }
-});
-
-app.get("/ask", async (req, res) => {
-  try {
-    const prompt = req.query.prompt || "Bonjour";
-    const completion = await openai.chat.completions.create({
-      model: "meta-llama/llama-3.3-70b-instruct:free",
-      messages: [
-        systemMessage,
-        { role: "user", content: prompt }
-      ],
-    });
-
-    // Retourne directement le contenu de la réponse
-    res.json({ 
-      reply: completion.choices[0].message.content,
-      ai: "Danakro AI",
-      version: "1.0"
-    });
-  } catch (err) {
-    res.status(500).json({ 
-      error: err.message,
-      ai: "Danakro AI"
-    });
-  }
-});
-
-// Route d'information sur l'API
-app.get("/", (req, res) => {
-  res.json({
-    name: "Danakro AI API",
-    version: "1.0",
-    creator: "Abdoul Aziz Damiba",
-    description: "IA développée par un élève de Boulsa",
-    endpoints: {
-      ask: {
-        POST: "/ask",
-        GET: "/ask?prompt=Votre question"
+      for (let i = 0; i < response.length; i += 1800) {
+        parts.push(response.substring(i, i + 1800));
       }
+      
+      // send all msg parts
+      for (const part of parts) {
+        await sendMessage(senderId, { text: part }, pageAccessToken);
+      }
+    } catch {
+      sendMessage(senderId, { text: '🚨 Oups une erreur s\'est produite. Veuillez utiliser d\'autre moyen pour poser vos questions\n\n Exemple :\ngpt3 <question>\n ronald <question>\n ai <question>\n bert <question>' }, pageAccessToken);
     }
-  });
-});
-
-// Route info créateur (seulement si demandé explicitement)
-app.get("/about", (req, res) => {
-  res.json({
-    ai: "Danakro AI",
-    developed_by: "Abdoul Aziz Damiba",
-    pseudonyms: [
-      "DZIGUEN DAM FOUKU SKÆ",
-      "SEIGNEUR WALIFUKU"
-    ],
-    location: "Boulsa",
-    type: "Student Project"
-  });
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Danakro AI Server running on port ${PORT}`);
-  console.log(`Développé par Abdoul Aziz Damiba (DZIGUEN DAM FOUKU SKÆ)`);
-});
+  }
+};
