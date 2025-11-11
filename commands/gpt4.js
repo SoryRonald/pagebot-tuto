@@ -3,28 +3,42 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'gpt4',
-  description: 'Interact with GPT-4o',
-  usage: 'gpt4 [your message]',
-  author: 'coffee',
+  description: 'Interagit avec GPT-4',
+  usage: 'gpt4 [votre message]',
+  author: 'RONALD SORY',
 
   async execute(senderId, args, pageAccessToken) {
-    const prompt = args.join(' ');
-    if (!prompt) return sendMessage(senderId, { text: "Usage: gpt4 <question>" }, pageAccessToken);
+    const message = args.join(' ');
+    if (!message) {
+      return sendMessage(senderId, { text: "❗ Utilisation : gpt4 [votre message]" }, pageAccessToken);
+    }
 
     try {
-      const { data: { response } } = await axios.get(`https://fuku-api-v4-2-p6ik.onrender.com/ask?prompt=${encodeURIComponent(prompt)}&uid=${senderId}&brain=on`);
-      const parts = [];
-
-      for (let i = 0; i < response.length; i += 1800) {
-        parts.push(response.substring(i, i + 1800));
-      }
+      // NOUVELLE API
+      const apiUrl = `https://fuku-api-v4-2-p6ik.onrender.com/ask?prompt=${encodeURIComponent(message)}`;
       
-      // send all msg parts
-      for (const part of parts) {
-        await sendMessage(senderId, { text: part }, pageAccessToken);
+      const response = await axios.get(apiUrl);
+
+      // Adaptation à la structure de réponse de la nouvelle API
+      // La réponse semble être directement dans response.data
+      const reply = response.data?.response?.trim() || 
+                   response.data?.answer?.trim() ||
+                   response.data?.content?.trim() || 
+                   response.data?.trim() || 
+                   response.data;
+
+      if (reply) {
+        // Découpage en messages de 1800 caractères
+        for (let i = 0; i < reply.length; i += 1800) {
+          await sendMessage(senderId, { text: reply.substring(i, i + 1800) }, pageAccessToken);
+        }
+      } else {
+        sendMessage(senderId, { text: "❌ GPT-4 n'a pas pu répondre. Réessaie." }, pageAccessToken);
       }
-    } catch {
-      sendMessage(senderId, { text: '🚨 Oups une erreur s\'est produite. Veuillez utiliser d\'autre moyen pour poser vos questions\n\n Exemple :\ngpt3 <question>\n ronald <question>\n ai <question>\n bert <question>' }, pageAccessToken);
+
+    } catch (error) {
+      console.error("❌ Erreur API GPT-4 :", error.message);
+      sendMessage(senderId, { text: "🚨 Une erreur s'est produite. Réessaie plus tard." }, pageAccessToken);
     }
   }
 };
