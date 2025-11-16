@@ -15,7 +15,7 @@ module.exports = {
 
     try {
       // Nouvelle API personnalisée
-      const apiUrl = `https://mybot-rest.kozow.com//ask?prompt=${encodeURIComponent(message)}`;
+      const apiUrl = `https://mybot-rest.kozow.com/api/ai4chat?ask=${encodeURIComponent(message)}`;
 
       const response = await axios.get(apiUrl);
 
