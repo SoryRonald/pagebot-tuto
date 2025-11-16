@@ -15,7 +15,7 @@ module.exports = {
 
     try {
       // Nouvelle API personnalisée
-      const apiUrl = `https://fuku-api-v4-2-p6ik.onrender.com/ask?prompt=${encodeURIComponent(message)}`;
+      const apiUrl = `https://mybot-rest.kozow.com//ask?prompt=${encodeURIComponent(message)}`;
 
       const response = await axios.get(apiUrl);
 
