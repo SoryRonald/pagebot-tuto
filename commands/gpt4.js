@@ -1,39 +1,39 @@
 const axios = require('axios');
-const { sendMessage} = require('../handles/sendMessage');
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'gpt4',
-  description: 'Interagit avec Danakro AI via l’API personnalisée',
+  description: 'Interagit avec Ronald API Openai',
   usage: 'gpt4 [votre message]',
   author: 'RONALD SORY',
+  access: 'all', 
+  category: '🧠 AI',
 
   async execute(senderId, args, pageAccessToken) {
-    const message = args.join(' ');
+    const message = args.join(' ').trim();
     if (!message) {
-      return sendMessage(senderId, { text: "❗ Utilisation: gpt4 [votre message]"}, pageAccessToken);
-}
+      return sendMessage(senderId, { text: "❗ Utilisation : gpt4 [votre message]" }, pageAccessToken);
+    }
 
     try {
-      // Nouvelle API personnalisée
-      const apiUrl = `https://mybot-rest.kozow.com/api/ai4chat?ask=${encodeURIComponent(message)}`;
-
+      // ✅ Requête API avec msg + userId
+      const apiUrl = `https://ronald-api-v2-833u.vercel.app/api/gpt4?msg=${encodeURIComponent(message)}&userId=${senderId}`;
       const response = await axios.get(apiUrl);
 
-      // Structure de réponse attendue: { reply: "..."}
-      const reply = response.data?.reply?.trim() || response.data?.trim() || response.data;
+      // ✅ L’API retourne probablement "ronald_reply" comme avant
+      const reply = response.data?.ronald_reply?.trim();
 
       if (reply) {
-        // Découpage en blocs de 1800 caractères
         for (let i = 0; i < reply.length; i += 1800) {
-          await sendMessage(senderId, { text: reply.substring(i, i + 1800)}, pageAccessToken);
-}
-} else {
-        sendMessage(senderId, { text: "❌ Danakro AI n'a pas pu répondre. Réessaie."}, pageAccessToken);
-}
+          await sendMessage(senderId, { text: reply.substring(i, i + 1800) }, pageAccessToken);
+        }
+      } else {
+        sendMessage(senderId, { text: "❌ je n'ai pas pu répondre. Réessaie." }, pageAccessToken);
+      }
 
-} catch (error) {
-      console.error("❌ Erreur API Danakro AI:", error.message);
-      sendMessage(senderId, { text: "🚨 Une erreur s'est produite. Réessaie plus tard."}, pageAccessToken);
-}
-}
+    } catch (error) {
+      console.error("❌ Erreur API  :", error.message);
+      sendMessage(senderId, { text: "🚨 Une erreur s'est produite avec. Réessaie plus tard." }, pageAccessToken);
+    }
+  }
 };
